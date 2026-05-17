@@ -1,101 +1,144 @@
 import json
 import hashlib
+from datetime import datetime
+from colorama import init, Fore, Style
+
+# Inicia o colorama (necessário no Windows)
+init(autoreset=True)
 
 # ============================================================
-# ARQUIVO onde os dados ficam salvos
-# json é como um "caderno" que o Python sabe ler e escrever
+# ARQUIVOS do sistema
 # ============================================================
-ARQUIVO = "usuarios.json"
+ARQUIVO_USUARIOS = "usuarios.json"
+ARQUIVO_LOGS     = "logs.txt"
 
 
-# ------------------------------------------------------------
-# Essas 2 funções são "ajudantes" para ler e salvar o arquivo
-# Você vai chamar elas sempre que precisar acessar os dados
-# ------------------------------------------------------------
+# ============================================================
+# LOGS — registra tudo que acontece no sistema
+# Cada linha tem: data/hora + mensagem
+# É só abrir o arquivo e escrever uma linha nova
+# ============================================================
+
+def registrar_log(mensagem):
+    agora = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    with open(ARQUIVO_LOGS, "a") as f:   # "a" = append, adiciona sem apagar
+        f.write(f"[{agora}] {mensagem}\n")
+
+
+# ============================================================
+# CARREGAR e SALVAR usuarios (igual antes)
+# ============================================================
 
 def carregar_usuarios():
-    # Abre o arquivo e transforma em um dicionário Python
-    with open(ARQUIVO, "r") as f:
+    with open(ARQUIVO_USUARIOS, "r") as f:
         return json.load(f)
 
 def salvar_usuarios(usuarios):
-    # Pega o dicionário e salva de volta no arquivo
-    with open(ARQUIVO, "w") as f:
+    with open(ARQUIVO_USUARIOS, "w") as f:
         json.dump(usuarios, f, indent=4)
 
 
-# ------------------------------------------------------------
-# Hash de senha: transforma "1234" em um código embaralhado
-# Isso é segurança básica — nunca salvar senha pura em arquivo
-# Exemplo: "1234" vira "03ac674216f3e..."
-# ------------------------------------------------------------
+# ============================================================
+# HASH de senha (igual antes)
+# ============================================================
 
 def hash_senha(senha):
     return hashlib.sha256(senha.encode()).hexdigest()
 
 
-# ------------------------------------------------------------
-# CADASTRO: cria uma conta nova
-# Recebe nome e senha, salva no arquivo
-# ------------------------------------------------------------
+# ============================================================
+# FUNÇÕES DE PRINT COLORIDO
+# Fore.GREEN = verde, Fore.RED = vermelho, etc.
+# Style.BRIGHT = negrito/brilhante
+# ============================================================
+
+def print_sucesso(msg):
+    print(Fore.GREEN + "✔ " + msg)
+
+def print_erro(msg):
+    print(Fore.RED + "✘ " + msg)
+
+def print_info(msg):
+    print(Fore.CYAN + "→ " + msg)
+
+def print_titulo(msg):
+    print(Style.BRIGHT + Fore.YELLOW + "\n" + "=" * 35)
+    print(Style.BRIGHT + Fore.YELLOW + f"  {msg}")
+    print(Style.BRIGHT + Fore.YELLOW + "=" * 35)
+
+
+# ============================================================
+# CADASTRO (igual antes, só com print colorido e log)
+# ============================================================
 
 def cadastrar():
+    print_titulo("CADASTRO")
     usuarios = carregar_usuarios()
 
     nome = input("Escolha um nome de usuário: ")
 
-    # Verifica se esse nome já existe no "caderno"
     if nome in usuarios:
-        print("Esse usuário já existe!")
+        print_erro("Esse usuário já existe!")
+        registrar_log(f"Tentativa de cadastro com usuário já existente: {nome}")
         return
 
     senha = input("Escolha uma senha: ")
 
-    # Cria a conta como um dicionário com 3 informações
     usuarios[nome] = {
-        "senha": hash_senha(senha),   # senha embaralhada
-        "saldo": 1000.0,              # saldo inicial de presente
-        "historico": []               # lista vazia de movimentações
+        "senha": hash_senha(senha),
+        "saldo": 1000.0,
+        "historico": []
     }
 
     salvar_usuarios(usuarios)
-    print("Conta criada! Saldo inicial: R$ 1000,00")
+    registrar_log(f"Nova conta criada: {nome}")
+    print_sucesso("Conta criada! Saldo inicial: R$ 1000,00")
 
 
-# ------------------------------------------------------------
-# LOGIN: verifica se usuário e senha estão corretos
-# Retorna o nome do usuário se der certo, ou None se errar
-# ------------------------------------------------------------
+# ============================================================
+# LOGIN com limite de tentativas
+# O usuário tem 3 chances — depois bloqueia
+# ============================================================
 
 def login():
+    print_titulo("LOGIN")
     usuarios = carregar_usuarios()
 
-    nome = input("Usuário: ")
-    senha = input("Senha: ")
+    MAX_TENTATIVAS = 3   # limite de erros permitidos
 
-    # Verifica se o nome existe E se a senha bate
-    if nome in usuarios and usuarios[nome]["senha"] == hash_senha(senha):
-        print(f"Bem-vindo, {nome}!")
-        return nome  # login OK, devolve o nome
+    for tentativa in range(MAX_TENTATIVAS):
+        nome  = input("Usuário: ")
+        senha = input("Senha: ")
 
-    print("Usuário ou senha incorretos.")
-    return None  # login falhou
+        if nome in usuarios and usuarios[nome]["senha"] == hash_senha(senha):
+            registrar_log(f"Login bem-sucedido: {nome}")
+            print_sucesso(f"Bem-vindo, {nome}!")
+            return nome
+
+        # Calcula quantas tentativas ainda restam
+        restantes = MAX_TENTATIVAS - tentativa - 1
+
+        registrar_log(f"Tentativa de login falhou para: {nome}")
+
+        if restantes > 0:
+            print_erro(f"Usuário ou senha incorretos. {restantes} tentativa(s) restante(s).")
+        else:
+            print_erro("Muitas tentativas. Acesso bloqueado.")
+            registrar_log(f"Acesso bloqueado após 3 tentativas: {nome}")
+
+    return None   # login falhou
 
 
-# ------------------------------------------------------------
-# VER SALDO: mostra quanto tem na conta
-# ------------------------------------------------------------
+# ============================================================
+# OPERAÇÕES BANCÁRIAS
+# (mesmas de antes, só com print colorido e logs)
+# ============================================================
 
 def ver_saldo(usuario):
     usuarios = carregar_usuarios()
     saldo = usuarios[usuario]["saldo"]
-    print(f"Seu saldo: R$ {saldo:.2f}")
-    # :.2f significa "mostrar com 2 casas decimais"
+    print_info(f"Seu saldo: R$ {saldo:.2f}")
 
-
-# ------------------------------------------------------------
-# DEPOSITAR: adiciona dinheiro na conta
-# ------------------------------------------------------------
 
 def depositar(usuario):
     usuarios = carregar_usuarios()
@@ -103,19 +146,16 @@ def depositar(usuario):
     valor = float(input("Quanto quer depositar? R$ "))
 
     if valor <= 0:
-        print("Valor tem que ser maior que zero.")
+        print_erro("Valor tem que ser maior que zero.")
         return
 
     usuarios[usuario]["saldo"] += valor
     usuarios[usuario]["historico"].append(f"Depósito: +R$ {valor:.2f}")
 
     salvar_usuarios(usuarios)
-    print(f"Depósito de R$ {valor:.2f} realizado!")
+    registrar_log(f"{usuario} depositou R$ {valor:.2f}")
+    print_sucesso(f"Depósito de R$ {valor:.2f} realizado!")
 
-
-# ------------------------------------------------------------
-# SACAR: remove dinheiro da conta
-# ------------------------------------------------------------
 
 def sacar(usuario):
     usuarios = carregar_usuarios()
@@ -123,23 +163,21 @@ def sacar(usuario):
     valor = float(input("Quanto quer sacar? R$ "))
 
     if valor <= 0:
-        print("Valor tem que ser maior que zero.")
+        print_erro("Valor tem que ser maior que zero.")
         return
 
     if valor > usuarios[usuario]["saldo"]:
-        print("Saldo insuficiente.")
+        registrar_log(f"{usuario} tentou sacar R$ {valor:.2f} sem saldo suficiente")
+        print_erro("Saldo insuficiente.")
         return
 
     usuarios[usuario]["saldo"] -= valor
     usuarios[usuario]["historico"].append(f"Saque: -R$ {valor:.2f}")
 
     salvar_usuarios(usuarios)
-    print(f"Saque de R$ {valor:.2f} realizado!")
+    registrar_log(f"{usuario} sacou R$ {valor:.2f}")
+    print_sucesso(f"Saque de R$ {valor:.2f} realizado!")
 
-
-# ------------------------------------------------------------
-# TRANSFERIR: manda dinheiro pra outra conta
-# ------------------------------------------------------------
 
 def transferir(usuario):
     usuarios = carregar_usuarios()
@@ -147,64 +185,59 @@ def transferir(usuario):
     destino = input("Nome do usuário que vai receber: ")
 
     if destino not in usuarios:
-        print("Usuário não encontrado.")
+        print_erro("Usuário não encontrado.")
         return
 
     valor = float(input("Quanto quer transferir? R$ "))
 
     if valor <= 0:
-        print("Valor tem que ser maior que zero.")
+        print_erro("Valor tem que ser maior que zero.")
         return
 
     if valor > usuarios[usuario]["saldo"]:
-        print("Saldo insuficiente.")
+        print_erro("Saldo insuficiente.")
         return
 
-    # Tira de quem envia, coloca em quem recebe
-    usuarios[usuario]["saldo"] -= valor
-    usuarios[destino]["saldo"] += valor
+    usuarios[usuario]["saldo"]  -= valor
+    usuarios[destino]["saldo"]  += valor
 
-    # Registra no histórico dos dois
     usuarios[usuario]["historico"].append(f"Transferência para {destino}: -R$ {valor:.2f}")
     usuarios[destino]["historico"].append(f"Transferência de {usuario}: +R$ {valor:.2f}")
 
     salvar_usuarios(usuarios)
-    print(f"Transferência de R$ {valor:.2f} para {destino} realizada!")
+    registrar_log(f"{usuario} transferiu R$ {valor:.2f} para {destino}")
+    print_sucesso(f"Transferência de R$ {valor:.2f} para {destino} realizada!")
 
-
-# ------------------------------------------------------------
-# HISTÓRICO: lista todas as movimentações da conta
-# ------------------------------------------------------------
 
 def ver_historico(usuario):
     usuarios = carregar_usuarios()
     historico = usuarios[usuario]["historico"]
 
+    print_titulo("HISTÓRICO")
+
     if len(historico) == 0:
-        print("Nenhuma movimentação ainda.")
+        print_info("Nenhuma movimentação ainda.")
         return
 
-    print("--- Seu histórico ---")
     for item in historico:
-        print(" -", item)
+        print(Fore.CYAN + f"  - {item}")
 
 
 # ============================================================
-# MENUS — são loops while que ficam rodando até o usuário sair
+# MENUS (mesmos de antes, com print colorido)
 # ============================================================
 
 def menu_banco(usuario):
-    # Esse loop fica rodando enquanto o usuário estiver logado
     while True:
-        print("\n===== BANCO DIGITAL =====")
-        print("1 - Ver saldo")
-        print("2 - Depositar")
-        print("3 - Sacar")
-        print("4 - Transferir")
-        print("5 - Histórico")
-        print("0 - Sair")
+        print_titulo(f"OLÁ, {usuario.upper()}")
+        print("  1 - Ver saldo")
+        print("  2 - Depositar")
+        print("  3 - Sacar")
+        print("  4 - Transferir")
+        print("  5 - Histórico")
+        print("  0 - Sair")
 
-        opcao = input("Escolha uma opção: ")
+        opcao = input("\nEscolha uma opção: ")
 
         if opcao == "1":
             ver_saldo(usuario)
@@ -217,40 +250,37 @@ def menu_banco(usuario):
         elif opcao == "5":
             ver_historico(usuario)
         elif opcao == "0":
-            print("Saindo... até logo!")
-            break  # break sai do while
+            registrar_log(f"{usuario} saiu do sistema")
+            print_info("Saindo... até logo!")
+            break
         else:
-            print("Opção inválida.")
+            print_erro("Opção inválida.")
 
 
 def menu_inicial():
-    # Cria o arquivo vazio se ainda não existir
+    # Cria o arquivo de usuários se não existir ainda
     try:
         carregar_usuarios()
     except:
-        salvar_usuarios({})  # cria arquivo com dicionário vazio
+        salvar_usuarios({})
 
     while True:
-        print("\n===== BEM-VINDO =====")
-        print("1 - Login")
-        print("2 - Cadastrar")
-        print("0 - Sair")
+        print_titulo("BANCO DIGITAL")
+        print("  1 - Login")
+        print("  2 - Cadastrar")
+        print("  0 - Sair")
 
-        opcao = input("Escolha uma opção: ")
+        opcao = input("\nEscolha uma opção: ")
 
         if opcao == "1":
             usuario = login()
-            if usuario:              # se login deu certo
-                menu_banco(usuario)  # entra no menu do banco
+            if usuario:
+                menu_banco(usuario)
         elif opcao == "2":
             cadastrar()
         elif opcao == "0":
+            print_info("Encerrando o sistema.")
             break
 
 
-# ============================================================
-# Ponto de entrada do programa
-# Isso garante que o menu só roda quando você executa
-# o main.py diretamente (não quando importa em outro arquivo)
-# ============================================================
 menu_inicial()

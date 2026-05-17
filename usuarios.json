@@ -1,12 +1,31 @@
 {
     "lucas": {
         "senha": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
-        "saldo": 21000.0,
+        "saldo": 10015650.5,
         "historico": [
-            "Dep\u00f3sito: +R$ 20000.00"
+            "Dep\u00f3sito: +R$ 20000.00",
+            "Dep\u00f3sito: +R$ 100.00",
+            "Saque: -R$ 500.00",
+            "Transfer\u00eancia para alyson: -R$ 5000.00",
+            "Dep\u00f3sito: +R$ 10000000.00",
+            "Transfer\u00eancia para lucas: -R$ 10.00",
+            "Transfer\u00eancia de lucas: +R$ 10.00",
+            "Dep\u00f3sito: +R$ 50.50"
         ]
     },
     "alyson": {
+        "senha": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
+        "saldo": 6000.0,
+        "historico": [
+            "Transfer\u00eancia de lucas: +R$ 5000.00"
+        ]
+    },
+    "a": {
+        "senha": "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb",
+        "saldo": 1000.0,
+        "historico": []
+    },
+    "ita": {
         "senha": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
         "saldo": 1000.0,
         "historico": []

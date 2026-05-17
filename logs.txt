@@ -1,0 +1,42 @@
+[17/05/2026 20:34:14] Login bem-sucedido: lucas
+[17/05/2026 20:34:44] lucas depositou R$ 100.00
+[17/05/2026 20:34:51] lucas sacou R$ 500.00
+[17/05/2026 20:35:07] lucas transferiu R$ 5000.00 para alyson
+[17/05/2026 20:35:49] lucas depositou R$ 10000000.00
+[17/05/2026 20:36:35] lucas transferiu R$ 10.00 para lucas
+[17/05/2026 20:38:39] Login bem-sucedido: lucas
+[17/05/2026 20:42:49] Tentativa de login falhou para: a
+[17/05/2026 20:42:53] Tentativa de login falhou para: a
+[17/05/2026 20:42:54] Tentativa de login falhou para: a
+[17/05/2026 20:42:54] Acesso bloqueado após 3 tentativas: a
+[17/05/2026 20:43:38] Login bem-sucedido: lucas
+[17/05/2026 20:44:13] Login bem-sucedido: lucas
+[17/05/2026 20:44:17] lucas depositou R$ 50.50
+[17/05/2026 20:44:55] lucas saiu do sistema
+[17/05/2026 20:44:59] Tentativa de login falhou para: a
+[17/05/2026 20:47:34] Tentativa de login falhou para: 
+[17/05/2026 20:47:35] Tentativa de login falhou para: 
+[17/05/2026 20:47:35] Acesso bloqueado após 3 tentativas: 
+[17/05/2026 20:47:52] Tentativa de login falhou para: a
+[17/05/2026 20:47:54] Tentativa de login falhou para: a
+[17/05/2026 20:47:55] Tentativa de login falhou para: a
+[17/05/2026 20:47:55] Acesso bloqueado após 3 tentativas: a
+[17/05/2026 20:48:19] Login bem-sucedido: lucas
+[17/05/2026 20:52:26] Nova conta criada: a
+[17/05/2026 20:52:27] Login bem-sucedido: a
+[17/05/2026 20:52:36] a saiu do sistema
+[17/05/2026 20:53:18] Tentativa de login falhou para: a
+[17/05/2026 20:53:19] Tentativa de login falhou para: a
+[17/05/2026 20:53:20] Tentativa de login falhou para: a
+[17/05/2026 20:53:20] Acesso bloqueado após 3 tentativas: a
+[17/05/2026 20:53:31] Login bem-sucedido: a
+[17/05/2026 20:53:40] a saiu do sistema
+[17/05/2026 20:53:47] Nova conta criada: ita
+[17/05/2026 20:53:51] Tentativa de login falhou para: ita
+[17/05/2026 20:53:52] Tentativa de login falhou para: ita
+[17/05/2026 20:53:55] Tentativa de login falhou para: ita
+[17/05/2026 20:53:55] Acesso bloqueado após 3 tentativas: ita
+[17/05/2026 20:53:58] Tentativa de login falhou para: ita
+[17/05/2026 20:54:00] Login bem-sucedido: ita
+[17/05/2026 20:54:40] Login bem-sucedido: a
+[17/05/2026 20:56:19] a saiu do sistema
