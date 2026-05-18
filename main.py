@@ -1,5 +1,6 @@
 import json
 import hashlib
+import requests
 from datetime import datetime
 from colorama import init, Fore, Style
 
@@ -61,26 +62,90 @@ def print_titulo(msg):
     print(Style.BRIGHT + Fore.YELLOW + f"  {msg}")
     print(Style.BRIGHT + Fore.YELLOW + "=" * 35)
 
+def print_aviso(msg):
+    print(Fore.MAGENTA + "⚠ " + msg)
+
 
 # ============================================================
 # PEDIR VALOR — aceita vírgula e rejeita letras
-# Usada em depositar, sacar e transferir
 # ============================================================
 
 def pedir_valor(mensagem):
     texto = input(mensagem)
-    texto = texto.replace(",", ".")  # transforma 50,30 em 50.30
+    texto = texto.replace(",", ".")
 
     try:
         valor = float(texto)
         return valor
     except:
-        print_erro("Valor inválido! Digite só números.")
+        print_erro("Valor inválido! Digite só números. Exemplo: 50 ou 50,30")
         return None
 
 
 # ============================================================
-# CADASTRO
+# API 1 — HAVEIBEENPWNED
+# Verifica se a senha digitada já apareceu em vazamentos
+#
+# Como funciona (conceito chamado k-anonymity):
+#   1. Gera o hash SHA1 da senha (ex: "1234" → "7110eda4...")
+#   2. Manda só os 5 primeiros caracteres pra API
+#      (a senha real NUNCA é enviada — isso é segurança de verdade)
+#   3. A API devolve uma lista de hashes que começam com esses 5 chars
+#   4. Verifica se o hash completo está nessa lista
+#   5. Se estiver, a senha foi vazada
+# ============================================================
+
+def verificar_senha_vazada(senha):
+    try:
+        # Gera hash SHA1 da senha e separa em prefixo + sufixo
+        sha1 = hashlib.sha1(senha.encode()).hexdigest().upper()
+        prefixo = sha1[:5]    # primeiros 5 caracteres
+        sufixo  = sha1[5:]    # o resto
+
+        # Manda só o prefixo pra API — a senha nunca é exposta
+        url      = f"https://api.pwnedpasswords.com/range/{prefixo}"
+        resposta = requests.get(url, timeout=5)
+
+        # A API devolve uma lista assim:
+        # SUFIXO1:quantidade
+        # SUFIXO2:quantidade
+        # Verifica se o sufixo da nossa senha está nessa lista
+        for linha in resposta.text.splitlines():
+            hash_retornado, quantidade = linha.split(":")
+            if hash_retornado == sufixo:
+                return int(quantidade)  # retorna quantas vezes foi vazada
+
+        return 0  # não encontrou — senha segura
+
+    except:
+        # Se a API estiver fora do ar, não bloqueia o cadastro
+        print_aviso("Não foi possível verificar vazamentos agora. Continuando...")
+        return 0
+
+
+# ============================================================
+# API 2 — AWESOMEAPI
+# Busca a cotação atual do dólar em tempo real
+# API brasileira, gratuita, sem precisar de cadastro
+# ============================================================
+
+def buscar_cotacao_dolar():
+    try:
+        url      = "https://economia.awesomeapi.com.br/json/last/USD-BRL"
+        resposta = requests.get(url, timeout=5)
+        dados    = resposta.json()
+
+        # A resposta vem assim:
+        # { "USDBRL": { "bid": "5.72", "ask": "5.73", ... } }
+        cotacao = float(dados["USDBRL"]["bid"])
+        return cotacao
+
+    except:
+        return None  # se falhar, retorna None e trata depois
+
+
+# ============================================================
+# CADASTRO com verificação de senha vazada
 # ============================================================
 
 def cadastrar():
@@ -104,11 +169,23 @@ def cadastrar():
         print_erro("A senha não pode ser vazia.")
         return
 
+    # Verifica se a senha já foi vazada em algum ataque
+    print_info("Verificando segurança da senha...")
+    vazamentos = verificar_senha_vazada(senha)
+
+    if vazamentos > 0:
+        print_erro(f"Essa senha apareceu em {vazamentos:,} vazamentos de dados!")
+        print_aviso("Escolha uma senha diferente para proteger sua conta.")
+        registrar_log(f"Cadastro bloqueado: senha vazada para usuário {nome}")
+        return
+
+    print_sucesso("Senha segura! Nenhum vazamento encontrado.")
+
     usuarios[nome] = {
         "senha": hash_senha(senha),
         "saldo": 1000.0,
         "historico": [],
-        "bloqueado": False   # começa desbloqueado
+        "bloqueado": False
     }
 
     salvar_usuarios(usuarios)
@@ -128,24 +205,20 @@ def login():
 
     nome = input("Usuário: ")
 
-    # Rejeita entrada vazia sem contar tentativa
     if nome.strip() == "":
         print_erro("Digite um nome de usuário.")
         return None
 
-    # Avisa que não existe sem contar tentativa
     if nome not in usuarios:
         print_erro("Usuário não encontrado.")
         registrar_log(f"Tentativa de login com usuário inexistente: {nome}")
         return None
 
-    # Verifica se a conta já está bloqueada
     if usuarios[nome].get("bloqueado", False):
         print_erro("Essa conta está bloqueada. Fale com o administrador.")
         registrar_log(f"Tentativa de acesso em conta bloqueada: {nome}")
         return None
 
-    # Só chega aqui se o usuário existe e não está bloqueado
     for tentativa in range(MAX_TENTATIVAS):
         senha = input("Senha: ")
 
@@ -160,7 +233,6 @@ def login():
         if restantes > 0:
             print_erro(f"Senha incorreta. {restantes} tentativa(s) restante(s).")
         else:
-            # Bloqueia a conta e salva no arquivo
             usuarios[nome]["bloqueado"] = True
             salvar_usuarios(usuarios)
             print_erro("Muitas tentativas. Conta bloqueada!")
@@ -175,7 +247,7 @@ def login():
 
 def ver_saldo(usuario):
     usuarios = carregar_usuarios()
-    saldo = usuarios[usuario]["saldo"]
+    saldo    = usuarios[usuario]["saldo"]
     print_info(f"Seu saldo: R$ {saldo:.2f}")
 
 
@@ -227,7 +299,6 @@ def transferir(usuario):
 
     destino = input("Nome do usuário que vai receber: ")
 
-    # Não pode transferir para si mesmo
     if destino == usuario:
         print_erro("Você não pode transferir para si mesmo.")
         return
@@ -248,8 +319,8 @@ def transferir(usuario):
         print_erro("Saldo insuficiente.")
         return
 
-    usuarios[usuario]["saldo"]  -= valor
-    usuarios[destino]["saldo"]  += valor
+    usuarios[usuario]["saldo"] -= valor
+    usuarios[destino]["saldo"] += valor
 
     usuarios[usuario]["historico"].append(f"Transferência para {destino}: -R$ {valor:.2f}")
     usuarios[destino]["historico"].append(f"Transferência de {usuario}: +R$ {valor:.2f}")
@@ -279,7 +350,15 @@ def ver_historico(usuario):
 
 def menu_banco(usuario):
     while True:
+        # Busca cotação toda vez que abre o menu
+        cotacao = buscar_cotacao_dolar()
+
         print_titulo(f"OLÁ, {usuario.upper()}")
+
+        # Mostra cotação se conseguiu buscar
+        if cotacao:
+            print(Fore.MAGENTA + f"  💵 Dólar hoje: R$ {cotacao:.2f}")
+
         print("  1 - Ver saldo")
         print("  2 - Depositar")
         print("  3 - Sacar")

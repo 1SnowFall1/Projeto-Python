@@ -1,10 +1,11 @@
 {
     "lucas": {
         "senha": "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4",
-        "saldo": 5050.3,
+        "saldo": 6050.3,
         "historico": [
             "Dep\u00f3sito: +R$ 50.30",
-            "Dep\u00f3sito: +R$ 4000.00"
+            "Dep\u00f3sito: +R$ 4000.00",
+            "Dep\u00f3sito: +R$ 1000.00"
         ],
         "bloqueado": false
     },
@@ -13,5 +14,11 @@
         "saldo": 1000.0,
         "historico": [],
         "bloqueado": true
+    },
+    "alyson": {
+        "senha": "d5eea81acc1c88c07b170634206c644f08b031e430d9d6910c8b8ee1a56b8898",
+        "saldo": 1000.0,
+        "historico": [],
+        "bloqueado": false
     }
 }

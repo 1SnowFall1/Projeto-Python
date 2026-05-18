@@ -67,3 +67,12 @@
 [17/05/2026 21:06:51] Tentativa de acesso em conta bloqueada: a
 [17/05/2026 21:06:56] Senha errada para: lucas
 [17/05/2026 21:06:58] Login bem-sucedido: lucas
+[17/05/2026 21:16:12] lucas saiu do sistema
+[17/05/2026 21:18:04] Login bem-sucedido: lucas
+[17/05/2026 21:18:33] lucas depositou R$ 1000.00
+[17/05/2026 21:18:57] lucas saiu do sistema
+[17/05/2026 21:19:13] Cadastro bloqueado: senha vazada para usuário alyson
+[17/05/2026 21:19:31] Cadastro bloqueado: senha vazada para usuário alyson
+[17/05/2026 21:19:40] Tentativa de login com usuário inexistente: alyson
+[17/05/2026 21:19:49] Tentativa de login com usuário inexistente: alyson
+[17/05/2026 21:19:59] Nova conta criada: alyson
