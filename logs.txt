@@ -40,3 +40,30 @@
 [17/05/2026 20:54:00] Login bem-sucedido: ita
 [17/05/2026 20:54:40] Login bem-sucedido: a
 [17/05/2026 20:56:19] a saiu do sistema
+[17/05/2026 21:03:05] Login bem-sucedido: a
+[17/05/2026 21:03:06] a saiu do sistema
+[17/05/2026 21:03:21] Tentativa de login com usuário inexistente: a
+[17/05/2026 21:03:31] Nova conta criada: lucas
+[17/05/2026 21:03:35] Tentativa de login com usuário inexistente: l
+[17/05/2026 21:03:39] Login bem-sucedido: lucas
+[17/05/2026 21:03:57] lucas depositou R$ 50.30
+[17/05/2026 21:04:58] lucas saiu do sistema
+[17/05/2026 21:05:04] Login bem-sucedido: lucas
+[17/05/2026 21:05:15] lucas tentou sacar R$ 4000.00 sem saldo suficiente
+[17/05/2026 21:05:19] lucas depositou R$ 4000.00
+[17/05/2026 21:06:12] lucas saiu do sistema
+[17/05/2026 21:06:13] Nova conta criada: a
+[17/05/2026 21:06:16] Senha errada para: a
+[17/05/2026 21:06:17] Login bem-sucedido: a
+[17/05/2026 21:06:21] a saiu do sistema
+[17/05/2026 21:06:23] Senha errada para: a
+[17/05/2026 21:06:24] Login bem-sucedido: a
+[17/05/2026 21:06:26] a saiu do sistema
+[17/05/2026 21:06:29] Senha errada para: a
+[17/05/2026 21:06:30] Senha errada para: a
+[17/05/2026 21:06:31] Senha errada para: a
+[17/05/2026 21:06:31] Conta bloqueada: a
+[17/05/2026 21:06:32] Tentativa de acesso em conta bloqueada: a
+[17/05/2026 21:06:51] Tentativa de acesso em conta bloqueada: a
+[17/05/2026 21:06:56] Senha errada para: lucas
+[17/05/2026 21:06:58] Login bem-sucedido: lucas

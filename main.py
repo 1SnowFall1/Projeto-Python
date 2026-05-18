@@ -3,7 +3,6 @@ import hashlib
 from datetime import datetime
 from colorama import init, Fore, Style
 
-# Inicia o colorama (necessário no Windows)
 init(autoreset=True)
 
 # ============================================================
@@ -14,19 +13,17 @@ ARQUIVO_LOGS     = "logs.txt"
 
 
 # ============================================================
-# LOGS — registra tudo que acontece no sistema
-# Cada linha tem: data/hora + mensagem
-# É só abrir o arquivo e escrever uma linha nova
+# LOGS
 # ============================================================
 
 def registrar_log(mensagem):
     agora = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-    with open(ARQUIVO_LOGS, "a") as f:   # "a" = append, adiciona sem apagar
+    with open(ARQUIVO_LOGS, "a") as f:
         f.write(f"[{agora}] {mensagem}\n")
 
 
 # ============================================================
-# CARREGAR e SALVAR usuarios (igual antes)
+# CARREGAR e SALVAR
 # ============================================================
 
 def carregar_usuarios():
@@ -39,7 +36,7 @@ def salvar_usuarios(usuarios):
 
 
 # ============================================================
-# HASH de senha (igual antes)
+# HASH de senha
 # ============================================================
 
 def hash_senha(senha):
@@ -47,9 +44,7 @@ def hash_senha(senha):
 
 
 # ============================================================
-# FUNÇÕES DE PRINT COLORIDO
-# Fore.GREEN = verde, Fore.RED = vermelho, etc.
-# Style.BRIGHT = negrito/brilhante
+# PRINTS COLORIDOS
 # ============================================================
 
 def print_sucesso(msg):
@@ -68,7 +63,24 @@ def print_titulo(msg):
 
 
 # ============================================================
-# CADASTRO (igual antes, só com print colorido e log)
+# PEDIR VALOR — aceita vírgula e rejeita letras
+# Usada em depositar, sacar e transferir
+# ============================================================
+
+def pedir_valor(mensagem):
+    texto = input(mensagem)
+    texto = texto.replace(",", ".")  # transforma 50,30 em 50.30
+
+    try:
+        valor = float(texto)
+        return valor
+    except:
+        print_erro("Valor inválido! Digite só números.")
+        return None
+
+
+# ============================================================
+# CADASTRO
 # ============================================================
 
 def cadastrar():
@@ -77,6 +89,10 @@ def cadastrar():
 
     nome = input("Escolha um nome de usuário: ")
 
+    if nome.strip() == "":
+        print_erro("Nome de usuário não pode ser vazio.")
+        return
+
     if nome in usuarios:
         print_erro("Esse usuário já existe!")
         registrar_log(f"Tentativa de cadastro com usuário já existente: {nome}")
@@ -84,10 +100,15 @@ def cadastrar():
 
     senha = input("Escolha uma senha: ")
 
+    if senha.strip() == "":
+        print_erro("A senha não pode ser vazia.")
+        return
+
     usuarios[nome] = {
         "senha": hash_senha(senha),
         "saldo": 1000.0,
-        "historico": []
+        "historico": [],
+        "bloqueado": False   # começa desbloqueado
     }
 
     salvar_usuarios(usuarios)
@@ -96,42 +117,60 @@ def cadastrar():
 
 
 # ============================================================
-# LOGIN com limite de tentativas
-# O usuário tem 3 chances — depois bloqueia
+# LOGIN com limite de tentativas e bloqueio persistente
 # ============================================================
 
 def login():
     print_titulo("LOGIN")
     usuarios = carregar_usuarios()
 
-    MAX_TENTATIVAS = 3   # limite de erros permitidos
+    MAX_TENTATIVAS = 3
 
+    nome = input("Usuário: ")
+
+    # Rejeita entrada vazia sem contar tentativa
+    if nome.strip() == "":
+        print_erro("Digite um nome de usuário.")
+        return None
+
+    # Avisa que não existe sem contar tentativa
+    if nome not in usuarios:
+        print_erro("Usuário não encontrado.")
+        registrar_log(f"Tentativa de login com usuário inexistente: {nome}")
+        return None
+
+    # Verifica se a conta já está bloqueada
+    if usuarios[nome].get("bloqueado", False):
+        print_erro("Essa conta está bloqueada. Fale com o administrador.")
+        registrar_log(f"Tentativa de acesso em conta bloqueada: {nome}")
+        return None
+
+    # Só chega aqui se o usuário existe e não está bloqueado
     for tentativa in range(MAX_TENTATIVAS):
-        nome  = input("Usuário: ")
         senha = input("Senha: ")
 
-        if nome in usuarios and usuarios[nome]["senha"] == hash_senha(senha):
+        if usuarios[nome]["senha"] == hash_senha(senha):
             registrar_log(f"Login bem-sucedido: {nome}")
             print_sucesso(f"Bem-vindo, {nome}!")
             return nome
 
-        # Calcula quantas tentativas ainda restam
         restantes = MAX_TENTATIVAS - tentativa - 1
-
-        registrar_log(f"Tentativa de login falhou para: {nome}")
+        registrar_log(f"Senha errada para: {nome}")
 
         if restantes > 0:
-            print_erro(f"Usuário ou senha incorretos. {restantes} tentativa(s) restante(s).")
+            print_erro(f"Senha incorreta. {restantes} tentativa(s) restante(s).")
         else:
-            print_erro("Muitas tentativas. Acesso bloqueado.")
-            registrar_log(f"Acesso bloqueado após 3 tentativas: {nome}")
+            # Bloqueia a conta e salva no arquivo
+            usuarios[nome]["bloqueado"] = True
+            salvar_usuarios(usuarios)
+            print_erro("Muitas tentativas. Conta bloqueada!")
+            registrar_log(f"Conta bloqueada: {nome}")
 
-    return None   # login falhou
+    return None
 
 
 # ============================================================
 # OPERAÇÕES BANCÁRIAS
-# (mesmas de antes, só com print colorido e logs)
 # ============================================================
 
 def ver_saldo(usuario):
@@ -143,7 +182,9 @@ def ver_saldo(usuario):
 def depositar(usuario):
     usuarios = carregar_usuarios()
 
-    valor = float(input("Quanto quer depositar? R$ "))
+    valor = pedir_valor("Quanto quer depositar? R$ ")
+    if valor is None:
+        return
 
     if valor <= 0:
         print_erro("Valor tem que ser maior que zero.")
@@ -160,7 +201,9 @@ def depositar(usuario):
 def sacar(usuario):
     usuarios = carregar_usuarios()
 
-    valor = float(input("Quanto quer sacar? R$ "))
+    valor = pedir_valor("Quanto quer sacar? R$ ")
+    if valor is None:
+        return
 
     if valor <= 0:
         print_erro("Valor tem que ser maior que zero.")
@@ -184,11 +227,18 @@ def transferir(usuario):
 
     destino = input("Nome do usuário que vai receber: ")
 
+    # Não pode transferir para si mesmo
+    if destino == usuario:
+        print_erro("Você não pode transferir para si mesmo.")
+        return
+
     if destino not in usuarios:
         print_erro("Usuário não encontrado.")
         return
 
-    valor = float(input("Quanto quer transferir? R$ "))
+    valor = pedir_valor("Quanto quer transferir? R$ ")
+    if valor is None:
+        return
 
     if valor <= 0:
         print_erro("Valor tem que ser maior que zero.")
@@ -224,7 +274,7 @@ def ver_historico(usuario):
 
 
 # ============================================================
-# MENUS (mesmos de antes, com print colorido)
+# MENUS
 # ============================================================
 
 def menu_banco(usuario):
@@ -258,7 +308,6 @@ def menu_banco(usuario):
 
 
 def menu_inicial():
-    # Cria o arquivo de usuários se não existir ainda
     try:
         carregar_usuarios()
     except:
